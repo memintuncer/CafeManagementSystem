@@ -33,4 +33,14 @@ public class UserRestImpl implements UserRest{
 		return CafeManagementUtils.getResponseEntity(CafeManagementConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
+	@Override
+	public ResponseEntity<String> login(Map<String, String> requestMap) {
+		try {
+			return userService.login(requestMap);
+		} catch (Exception exception) {
+			exception.printStackTrace();
+		}
+		return CafeManagementUtils.getResponseEntity(CafeManagementConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+
 }
