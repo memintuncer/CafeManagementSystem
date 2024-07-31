@@ -17,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.inn.cafemanagement.JWT.CustomerUsersDetailsService;
+import com.inn.cafemanagement.JWT.JWTAuthorizationFilter;
 import com.inn.cafemanagement.JWT.JwtUtil;
 import com.inn.cafemanagement.POJO.User;
 import com.inn.cafemanagement.constants.CafeManagementConstants;
@@ -44,6 +45,10 @@ public class UserServiceImpl implements UserService {
     
     @Autowired
     private JwtUtil jwtUtil;
+    
+    @Autowired
+    private JWTAuthorizationFilter jwtAuthorizationFilter;
+    
     
     @Override
     public ResponseEntity<String> signUp(Map<String, String> requestMap) {
@@ -84,39 +89,49 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseEntity<String> login(Map<String, String> requestMap) {
-        log.info("Inside login");
+    	log.info("Inside login {}", requestMap);
         try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(requestMap.get("email"), requestMap.get("password")));
-            SecurityContextHolder.getContext().setAuthentication(authentication); // Set authentication in the context
-            
-            if (authentication.isAuthenticated()) {
-                String email = requestMap.get("email");
-                String role = customerUsersDetailsService.loadUserByUsername(email).getAuthorities().toString(); // Adjust according to actual role
-                if ("true".equalsIgnoreCase(customerUsersDetailsService.getUserDetail().getStatus())) {
-                    return new ResponseEntity<>(String.format("{\"token\":\"%s\"}", jwtUtil.generateToken(email, role)), HttpStatus.OK);
+            Authentication auth = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(requestMap.get("email"), requestMap.get("password")));
+            if (auth.isAuthenticated()) {
+                if (customerUsersDetailsService.getUserDetail().getStatus().equalsIgnoreCase("true")) {
+                    return new ResponseEntity<String>("{\"token\":\"" + jwtUtil.generateToken(
+                    		customerUsersDetailsService.getUserDetail().getEmail(), customerUsersDetailsService.getUserDetail().getRole()) + "\"}",
+                            HttpStatus.OK);
                 } else {
-                    return new ResponseEntity<>(String.format("{\"message\":\"%s\"}", "Wait for admin approval."), HttpStatus.BAD_REQUEST);
+                    return new ResponseEntity<String>("{\"message\":\"" + "Wait for Admin Approvel." + "\"}",
+                            HttpStatus.BAD_REQUEST);
                 }
             }
-        } catch (Exception e) {
-            logger.error("Login error: {}", e.getMessage());
+        } catch (Exception ex) {
+            log.error("{}", ex);
         }
-        return new ResponseEntity<>(String.format("{\"message\":\"%s\"}", "Bad Request."), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<String>("{\"message\":\"" + "Bad Credentials." + "\"}",
+                HttpStatus.BAD_REQUEST);
     }
 
     @Override
     public ResponseEntity<List<UserWrapper>> getAllUsers() {
-        try {
-            if (SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
-                    .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"))) {
-                return new ResponseEntity<>(userDao.getAllUsers(), HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>(new ArrayList<>(), HttpStatus.UNAUTHORIZED);
-            }
-        } catch (Exception e) {
-            logger.error("Get all users error: {}", e.getMessage());
-            return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+//        try {
+//            if (SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+//                    .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"))) {
+//                return new ResponseEntity<>(userDao.getAllUsers(), HttpStatus.OK);
+//            } else {
+//                return new ResponseEntity<>(new ArrayList<>(), HttpStatus.UNAUTHORIZED);
+//            }
+//        } catch (Exception e) {
+//            logger.error("Get all users error: {}", e.getMessage());
+//            return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+    	 try {
+             if (jwtAuthorizationFilter.isAdmin()) {
+                 return new ResponseEntity<>(userDao.getAllUsers(), HttpStatus.OK);
+             } else {
+                 return new ResponseEntity<>(new ArrayList<>(), HttpStatus.UNAUTHORIZED);
+             }
+
+         } catch (Exception ex) {
+             ex.printStackTrace();
+         }
+         return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
