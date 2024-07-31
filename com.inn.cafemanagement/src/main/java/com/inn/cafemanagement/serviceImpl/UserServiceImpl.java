@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.inn.cafemanagement.JWT.CustomerUsersDetailsService;
@@ -134,4 +133,29 @@ public class UserServiceImpl implements UserService {
          }
          return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+	@Override
+	public ResponseEntity<String> updateUser(Map<String, String> requestMap) {
+		try {
+			if(jwtAuthorizationFilter.isAdmin()) {
+				int userId = Integer.parseInt(requestMap.get("id"));
+				String status = requestMap.get("status");
+								java.util.Optional<User> optional = userDao.findById(userId);
+				if(!optional.isEmpty()) {
+					userDao.updateStatus(status,userId);
+					return CafeManagementUtils.getResponseEntity("User status updated successfully", HttpStatus.OK);
+				}
+				else {
+					return CafeManagementUtils.getResponseEntity("User id does not exists", HttpStatus.OK);
+				}
+			}
+		} catch (Exception exception) {
+			exception.printStackTrace();
+		}
+		
+		return CafeManagementUtils.getResponseEntity(CafeManagementConstants.UNAUTHORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
+	}
+		
+	
+	
 }

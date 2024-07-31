@@ -15,11 +15,25 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import lombok.Data;
 
-@NamedQuery(name = "User.findByEmailId", query = "Select u from User u where u.email=:email")
+@NamedQuery(name = "User.findByEmailId", 
+			query = "Select u from User u "
+					+"where u.email=:email")
+
 @NamedQuery(name = "User.getAllUsers", 
 			query = "Select new com.inn.cafemanagement.wrapper.UserWrapper(u.id,u.name,u.contactNumber,u.email,u.status)"
 					+ " from User u"
 					+ " where u.role='user'")
+
+@NamedQuery(name = "User.getAllAdmins", 
+			query = "Select u.email"
+					+ " from User u"
+					+ " where u.role='admin'")
+
+@NamedQuery(name = "User.updateStatus",
+			query = "update User u "
+					+ "set u.status =: status "
+					+ "where u.id =:id")
+
 
 @Entity
 @DynamicUpdate
@@ -41,7 +55,7 @@ public class User implements Serializable {
 	@Column(name = "contactNumber")
 	private String contactNumber;
 
-	@Column(name = "email") // Used for username
+	@Column(name = "email") // Used as username
 	private String email;
 
 	@Column(name = "password")
