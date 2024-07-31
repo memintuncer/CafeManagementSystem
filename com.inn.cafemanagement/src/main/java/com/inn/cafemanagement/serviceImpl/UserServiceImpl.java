@@ -15,6 +15,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import com.google.common.base.Strings;
 import com.inn.cafemanagement.JWT.CustomerUsersDetailsService;
 import com.inn.cafemanagement.JWT.JWTAuthorizationFilter;
 import com.inn.cafemanagement.JWT.JwtUtil;
@@ -23,6 +24,7 @@ import com.inn.cafemanagement.constants.CafeManagementConstants;
 import com.inn.cafemanagement.dao.UserDao;
 import com.inn.cafemanagement.service.UserService;
 import com.inn.cafemanagement.utils.CafeManagementUtils;
+import com.inn.cafemanagement.utils.EmailUtil;
 import com.inn.cafemanagement.wrapper.UserWrapper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +50,8 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private JWTAuthorizationFilter jwtAuthorizationFilter;
     
+    @Autowired
+    private EmailUtil emailUtil;
     
     @Override
     public ResponseEntity<String> signUp(Map<String, String> requestMap) {
@@ -132,17 +136,30 @@ public class UserServiceImpl implements UserService {
 								java.util.Optional<User> optional = userDao.findById(userId);
 				if(!optional.isEmpty()) {
 					userDao.updateStatus(status,userId);
-					return CafeManagementUtils.getResponseEntity("User status updated successfully", HttpStatus.OK);
+					sendMailToAllAdmin(requestMap.get("status"), optional.get().getEmail(), userDao.getAllAdmins());
+					return CafeManagementUtils.getResponseEntity("User status updated successfully",
+							HttpStatus.OK);
 				}
 				else {
-					return CafeManagementUtils.getResponseEntity("User id does not exists", HttpStatus.OK);
+					return CafeManagementUtils.getResponseEntity("User id does not exists", 
+							HttpStatus.OK);
 				}
 			}
 		} catch (Exception exception) {
 			exception.printStackTrace();
 		}
-		
-		return CafeManagementUtils.getResponseEntity(CafeManagementConstants.UNAUTHORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
+		return CafeManagementUtils.getResponseEntity(CafeManagementConstants.UNAUTHORIZED_ACCESS, 
+				HttpStatus.UNAUTHORIZED);
+	}
+	
+	private void sendMailToAllAdmin(String status, String user, List<String> allAdmin) {
+	    allAdmin.remove(jwtAuthorizationFilter.getCurrentUsername());
+	    if (status != null && status.equalsIgnoreCase("true")) {
+	        emailUtil.SendSimpleMessage(jwtAuthorizationFilter.getCurrentUsername(), "Account Approved", "USER:- " + user + "\n is approved by\nADMIN:-" + jwtAuthorizationFilter.getCurrentUsername(), allAdmin);
+	    } else {
+	        emailUtil.SendSimpleMessage(jwtAuthorizationFilter.getCurrentUsername(), "Account Disabled", "USER:- " + user + "\n is disabled by\nADMIN:-" + jwtAuthorizationFilter.getCurrentUsername(), allAdmin);
+	
+	    }
 	}
 
 	@Override
@@ -167,9 +184,21 @@ public class UserServiceImpl implements UserService {
 			exception.printStackTrace();
 		}
 		return CafeManagementUtils.getResponseEntity(CafeManagementConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
-
 	}
-		
-	
+
+	@Override
+	public ResponseEntity<String> forgotPassword(Map<String, String> requestMap) {
+		try {
+			User user = userDao.findByEmail(requestMap.get("email"));
+			if(!Objects.isNull(user) && !Strings.isNullOrEmpty(user.getEmail())) {
+				emailUtil.forgetPasswordMail(user.getEmail(), "Credentials by Cafe Management System",user.getPassword());
+				return CafeManagementUtils.getResponseEntity("Check your mail for credentials", HttpStatus.OK);
+			}
+			
+		} catch (Exception exception) {
+			exception.printStackTrace();
+		}
+		return CafeManagementUtils.getResponseEntity(CafeManagementConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
 	
 }
