@@ -1,5 +1,6 @@
 package com.inn.cafemanagement.rest;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
@@ -9,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.inn.cafemanagement.wrapper.UserWrapper;
-import java.util.List;
 
 @RequestMapping(path = "/user")
 public interface UserRest {
@@ -25,4 +25,11 @@ public interface UserRest {
 	
 	@PostMapping(path = "/update")
 	public ResponseEntity<String> updateUser(@RequestBody(required = true)Map<String, String> requestMap);
+	
+	@GetMapping(path = "/checkToken")
+	public ResponseEntity<String> checkToken();
+	
+	@PostMapping(path = "/changePassword")
+	public ResponseEntity<String> changePassword(@RequestBody Map<String,String> requestMap);
+	
 }

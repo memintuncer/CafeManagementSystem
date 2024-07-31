@@ -110,17 +110,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseEntity<List<UserWrapper>> getAllUsers() {
-//        try {
-//            if (SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
-//                    .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"))) {
-//                return new ResponseEntity<>(userDao.getAllUsers(), HttpStatus.OK);
-//            } else {
-//                return new ResponseEntity<>(new ArrayList<>(), HttpStatus.UNAUTHORIZED);
-//            }
-//        } catch (Exception e) {
-//            logger.error("Get all users error: {}", e.getMessage());
-//            return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
     	 try {
              if (jwtAuthorizationFilter.isAdmin()) {
                  return new ResponseEntity<>(userDao.getAllUsers(), HttpStatus.OK);
@@ -154,6 +143,31 @@ public class UserServiceImpl implements UserService {
 		}
 		
 		return CafeManagementUtils.getResponseEntity(CafeManagementConstants.UNAUTHORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
+	}
+
+	@Override
+	public ResponseEntity<String> checkToken() {
+		return CafeManagementUtils.getResponseEntity("true", HttpStatus.OK);
+	}
+
+	@Override
+	public ResponseEntity<String> changePassword(Map<String, String> requestMap) {
+		try {
+			User user = userDao.findByEmail(jwtAuthorizationFilter.getCurrentUsername());
+			if(!user.equals(null)) {
+				if(user.getPassword().equals(requestMap.get("oldPassword"))) {
+					user.setPassword(requestMap.get("newPassword"));
+					userDao.save(user);
+					return CafeManagementUtils.getResponseEntity("Password updated successfully", HttpStatus.OK);
+				}
+				return CafeManagementUtils.getResponseEntity("Incorrect old password", HttpStatus.BAD_REQUEST);
+			}
+			return CafeManagementUtils.getResponseEntity(CafeManagementConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (Exception exception) {
+			exception.printStackTrace();
+		}
+		return CafeManagementUtils.getResponseEntity(CafeManagementConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+
 	}
 		
 	
