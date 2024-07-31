@@ -17,7 +17,7 @@ import lombok.Data;
 
 @NamedQuery(name = "Category.getAllCategories",
 			query = "Select c "
-					+"from category c")
+					+"from Category c")
 
 @Data
 @Entity
