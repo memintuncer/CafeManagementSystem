@@ -3,6 +3,7 @@ package com.inn.cafemanagement.serviceImpl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -82,6 +83,35 @@ public class CategoryServiceImpl implements CategoryService{
 			exception.printStackTrace();
 		}
 		return new ResponseEntity<List<Category>>(new ArrayList<>(),HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+
+	@Override
+	public ResponseEntity<String> updateCategory(Map<String, String> requestMap) {
+		try {
+			if(jwtAuthorizationFilter.isAdmin()) {
+				if(validateCategoryMap(requestMap, true)) {
+					Optional optional = categoryDao.findById(Integer.parseInt(requestMap.get("id")));
+					if(!optional.isEmpty()) {
+						categoryDao.save(getCategoryFromRequestMap(requestMap, true));
+						return CafeManagementUtils.getResponseEntity("Category updated successfully", HttpStatus.OK);
+					}
+					else {
+						return CafeManagementUtils.getResponseEntity("Category id does not exists", HttpStatus.OK);
+					}
+				}
+				return CafeManagementUtils.getResponseEntity(CafeManagementConstants.INVALID_DATA, 
+						HttpStatus.BAD_REQUEST);
+			}
+			else {
+				return CafeManagementUtils.getResponseEntity(CafeManagementConstants.UNAUTHORIZED_ACCESS,
+						HttpStatus.UNAUTHORIZED);
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return CafeManagementUtils.getResponseEntity(CafeManagementConstants.SOMETHING_WENT_WRONG, 
+				HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
 	
