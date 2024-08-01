@@ -29,6 +29,11 @@ import lombok.Data;
 					+"Set p.status=:status "
 					+"Where p.id =:id")
 
+@NamedQuery(name = "Product.getAllProductsByCategory",
+			query = "Select new com.inn.cafemanagement.wrapper.ProductWrapper(p.id,p.name) "
+					+"from Product p "
+					+"where p.category.id =:categoryId and p.status ='true'")
+ 
 //@NamedQuery(name = "Product.getAllProducts", query = "select new com.inn.cafemanagement.wrapper.ProductWrapper(u.id , u.name , u.description , u.price , u.category.id , u.category.name , u.status) from Product u")
 
 @Data

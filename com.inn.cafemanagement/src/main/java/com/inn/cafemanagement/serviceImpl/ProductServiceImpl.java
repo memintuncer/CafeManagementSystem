@@ -176,4 +176,14 @@ public class ProductServiceImpl implements ProductService {
 				HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
+	@Override
+	public ResponseEntity<List<ProductWrapper>> getAllProductsByCategory(Integer categoryId) {
+		try {
+			return new ResponseEntity<>(productDao.getAllProductsByCategory(categoryId),HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return new ResponseEntity<>(new ArrayList<>(),HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+
 }
