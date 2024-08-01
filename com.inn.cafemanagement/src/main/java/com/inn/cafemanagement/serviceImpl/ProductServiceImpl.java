@@ -3,6 +3,7 @@ package com.inn.cafemanagement.serviceImpl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,8 @@ import com.inn.cafemanagement.dao.ProductDao;
 import com.inn.cafemanagement.service.ProductService;
 import com.inn.cafemanagement.utils.CafeManagementUtils;
 import com.inn.cafemanagement.wrapper.ProductWrapper;
+
+import net.bytebuddy.description.field.FieldDescription.InGenericShape;
 
 
 @Service
@@ -88,6 +91,40 @@ public class ProductServiceImpl implements ProductService {
 			e.printStackTrace();
 		}
 		return new ResponseEntity<>(new ArrayList<>(),HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+
+	@Override
+	public ResponseEntity<String> updateProduct(Map<String, String> requestMap) {
+		try {
+			if(jwtAuthorizationFilter.isAdmin()) {
+				if(validateProductMap(requestMap, true)) {
+					Optional<Product> optional = productDao.findById(Integer.parseInt(requestMap.get("id")));
+					if(!optional.isEmpty()) {
+						Product product = getProductFromRequestMap(requestMap, true);
+						product.setStatus(optional.get().getStatus());
+						productDao.save(product);
+						return CafeManagementUtils.getResponseEntity("Product updated succcessfully.",
+								HttpStatus.OK);
+					}
+					else {
+						return CafeManagementUtils.getResponseEntity("Product id does not exists",
+								HttpStatus.OK);
+					}
+				}
+				else {
+					return CafeManagementUtils.getResponseEntity(CafeManagementConstants.INVALID_DATA,
+							HttpStatus.BAD_REQUEST);
+				}
+			}
+			else {
+				return CafeManagementUtils.getResponseEntity(CafeManagementConstants.UNAUTHORIZED_ACCESS,
+						HttpStatus.UNAUTHORIZED);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return CafeManagementUtils.getResponseEntity(CafeManagementConstants.SOMETHING_WENT_WRONG,
+				HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
 }
