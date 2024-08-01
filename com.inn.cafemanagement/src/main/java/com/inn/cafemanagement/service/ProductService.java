@@ -21,4 +21,6 @@ public interface ProductService {
 
 	ResponseEntity<List<ProductWrapper>> getAllProductsByCategory(Integer categoryId);
 
+	ResponseEntity<ProductWrapper> getProductById(Integer id);
+
 }
