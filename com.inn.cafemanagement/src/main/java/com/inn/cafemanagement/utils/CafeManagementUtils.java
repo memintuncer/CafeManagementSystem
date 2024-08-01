@@ -1,5 +1,6 @@
 package com.inn.cafemanagement.utils;
 
+import java.io.File;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,6 +40,16 @@ public class CafeManagementUtils {
             return new Gson().fromJson(data , new TypeToken<Map<String , Object>>(){
             }.getType());
         return new HashMap<>();
+    }
+    
+    public static Boolean isFileExists(String path) {
+    	try {
+			File file = new File(path);
+			return (file!= null && file.exists())? Boolean.TRUE : Boolean.FALSE;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+    	return false;
     }
 
 }

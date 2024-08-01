@@ -1,6 +1,7 @@
 package com.inn.cafemanagement.serviceImpl;
 
-import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +16,6 @@ import com.inn.cafemanagement.dao.BillDao;
 import com.inn.cafemanagement.document.BillPdfGenerator;
 import com.inn.cafemanagement.service.BillService;
 import com.inn.cafemanagement.utils.CafeManagementUtils;
-import com.itextpdf.text.Document;
-import com.itextpdf.text.pdf.PdfWriter;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 public class BillServiceImpl implements BillService{
 
 	@Autowired
-	JWTAuthorizationFilter authorizationFilter;
+	JWTAuthorizationFilter jwtAuthorizationFilter;
 	@Autowired
 	BillDao billDao;
 	
@@ -85,6 +84,43 @@ public class BillServiceImpl implements BillService{
 			   requestMap.containsKey("paymentMethod")&&
 			   requestMap.containsKey("productDetails")&&
 			   requestMap.containsKey("totalAmount");
-	} 
+	}
+
+	@Override
+	public ResponseEntity<List<Bill>> getBills() {
+		List<Bill> bills = new ArrayList<Bill>();
+		if(jwtAuthorizationFilter.isAdmin()) {
+			bills = billDao.getAllBills();
+		}
+		else {
+			bills = billDao.getBillByUserName(jwtAuthorizationFilter.getCurrentUsername());
+		}
+		return new ResponseEntity<>(bills,HttpStatus.OK);
+	}
+
+	@Override
+	public ResponseEntity<byte[]> getPdf(Map<String, Object> requestMap) {
+		try {
+			byte [] byteArray = new byte[0];
+			if(!requestMap.containsKey("uuid") && validateRequestMap(requestMap)) {
+				return new ResponseEntity<>(byteArray,HttpStatus.BAD_REQUEST);
+			}
+			String filePath = CafeManagementConstants.DOWNLOAD_PATH + "\\" + requestMap.get("uuid")+".pdf";
+			if(CafeManagementUtils.isFileExists(filePath)) {
+				byteArray=billPdfGenerator.getByteArray(filePath);
+				return new ResponseEntity<>(byteArray,HttpStatus.OK);
+			}
+			else {
+				requestMap.put("isGenerate", false);
+				generateReport(requestMap);
+				byteArray=billPdfGenerator.getByteArray(filePath);
+				return new ResponseEntity<>(byteArray,HttpStatus.OK);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 
 }
