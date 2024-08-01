@@ -127,4 +127,28 @@ public class ProductServiceImpl implements ProductService {
 				HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
+	@Override
+	public ResponseEntity<String> deleteProduct(Integer id) {
+		try {
+			if(jwtAuthorizationFilter.isAdmin()) {
+				Optional<Product> optional = productDao.findById(id);
+				if(!optional.isEmpty()) {
+					productDao.deleteById(id);
+					return CafeManagementUtils.getResponseEntity("Product updated succcessfully.",
+							HttpStatus.OK);
+					}
+				return CafeManagementUtils.getResponseEntity("Product id does not exists",
+						HttpStatus.OK);
+			}
+			else {
+				return CafeManagementUtils.getResponseEntity(CafeManagementConstants.UNAUTHORIZED_ACCESS,
+						HttpStatus.UNAUTHORIZED);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return CafeManagementUtils.getResponseEntity(CafeManagementConstants.SOMETHING_WENT_WRONG,
+				HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+
 }
