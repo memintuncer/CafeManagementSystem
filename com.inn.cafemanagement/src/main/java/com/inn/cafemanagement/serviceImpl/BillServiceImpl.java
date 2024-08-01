@@ -3,6 +3,7 @@ package com.inn.cafemanagement.serviceImpl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -120,6 +121,24 @@ public class BillServiceImpl implements BillService{
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	@Override
+	public ResponseEntity<String> deleteBill(Integer id) {
+		try {
+			Optional optional = billDao.findById(id);
+			if(!optional.isEmpty()) {
+				billDao.deleteById(id);
+				return  CafeManagementUtils.getResponseEntity("Bill deleted successfully.", 
+						HttpStatus.OK);
+			}
+			return  CafeManagementUtils.getResponseEntity("Bill id does not exists.", 
+					HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return CafeManagementUtils.getResponseEntity(CafeManagementConstants.SOMETHING_WENT_WRONG, 
+				HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
 
