@@ -10,12 +10,22 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import lombok.Data;
+
+
+@NamedQuery(name = "Product.getAllProducts", 
+			query = "Select new com.inn.cafemanagement.wrapper.ProductWrapper(p.id,p.name,p.description,"
+					+"p.price,p.status,p.category.id,p.category.name) "
+					+"from Product p")
+
+
+//@NamedQuery(name = "Product.getAllProducts", query = "select new com.inn.cafemanagement.wrapper.ProductWrapper(u.id , u.name , u.description , u.price , u.category.id , u.category.name , u.status) from Product u")
 
 @Data
 @Entity
@@ -29,7 +39,7 @@ public class Product implements Serializable{
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
-	private int id;
+	private Integer id;
 	
 	@Column(name = "name")
 	private String name;
@@ -38,8 +48,8 @@ public class Product implements Serializable{
 	@JoinColumn(name = "category_fk",nullable = false)
 	private Category category;
 	
-	@Column(name = "deccription")
-	private String deccription;
+	@Column(name = "description")
+	private String description;
 	
 	@Column(name = "price")
 	private Integer price;

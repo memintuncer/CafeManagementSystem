@@ -17,7 +17,11 @@ import lombok.Data;
 
 @NamedQuery(name = "Category.getAllCategories",
 			query = "Select c "
-					+"from Category c")
+					+"from Category c "
+					+"where c.id in "
+					+"(select p.category "
+					+"from Product p "
+					+"where p.status='true')")
 
 @Data
 @Entity

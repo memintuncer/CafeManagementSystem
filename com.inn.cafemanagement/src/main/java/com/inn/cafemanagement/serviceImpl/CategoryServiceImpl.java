@@ -75,6 +75,7 @@ public class CategoryServiceImpl implements CategoryService{
 	public ResponseEntity<List<Category>> getAllCategories(String filterValue) {
 		try {
 			if(!Strings.isNullOrEmpty(filterValue) && filterValue.equalsIgnoreCase("true")) {
+				//Return only the categories that have products
 				return new ResponseEntity<List<Category>>(categoryDao.getAllCategories(),
 										HttpStatus.OK);
 			}

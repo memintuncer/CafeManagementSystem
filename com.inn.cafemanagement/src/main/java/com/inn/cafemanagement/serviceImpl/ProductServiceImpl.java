@@ -1,5 +1,7 @@
 package com.inn.cafemanagement.serviceImpl;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,7 @@ import com.inn.cafemanagement.constants.CafeManagementConstants;
 import com.inn.cafemanagement.dao.ProductDao;
 import com.inn.cafemanagement.service.ProductService;
 import com.inn.cafemanagement.utils.CafeManagementUtils;
+import com.inn.cafemanagement.wrapper.ProductWrapper;
 
 
 @Service
@@ -60,7 +63,7 @@ public class ProductServiceImpl implements ProductService {
 		
 		product.setCategory(category);
 		product.setName(requestMap.get("name"));
-		product.setDeccription(requestMap.get("description"));
+		product.setDescription(requestMap.get("description"));
 		product.setPrice(Integer.parseInt(requestMap.get("price")));
 		return product;
 	}
@@ -75,6 +78,16 @@ public class ProductServiceImpl implements ProductService {
 			}
 		}
 		return false;
+	}
+
+	@Override
+	public ResponseEntity<List<ProductWrapper>> getAllProducts() {
+		try {
+			return new ResponseEntity<>(productDao.getAllProducts(),HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return new ResponseEntity<>(new ArrayList<>(),HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
 }

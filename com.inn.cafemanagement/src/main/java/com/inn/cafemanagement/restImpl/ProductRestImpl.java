@@ -1,5 +1,7 @@
 package com.inn.cafemanagement.restImpl;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +13,7 @@ import com.inn.cafemanagement.constants.CafeManagementConstants;
 import com.inn.cafemanagement.rest.ProductRest;
 import com.inn.cafemanagement.service.ProductService;
 import com.inn.cafemanagement.utils.CafeManagementUtils;
+import com.inn.cafemanagement.wrapper.ProductWrapper;
 
 @RestController
 public class ProductRestImpl implements ProductRest{
@@ -27,6 +30,16 @@ public class ProductRestImpl implements ProductRest{
 		}
 		return CafeManagementUtils.getResponseEntity(CafeManagementConstants.SOMETHING_WENT_WRONG,
 				HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+
+	@Override
+	public ResponseEntity<List<ProductWrapper>> getAllProducts() {
+		try {
+			return productService.getAllProducts();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return new ResponseEntity<>(new ArrayList<>(),HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
 }
